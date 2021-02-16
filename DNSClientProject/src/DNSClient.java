@@ -15,10 +15,13 @@ public class DNSClient {
 		//1- parse input args to get values for all above instance vars
 		parseInput(args);
 		//2- pass relevant vals to some sort of request builder method
+		RequestPacket currPacket = new RequestPacket(name, queryFlag);
+		byte[] request = currPacket.genRequestPacket();
 		//3- make socket and send the request
+		DatagramSocket clientSocket = new DatagramSocket();
 		//4- receive and parse response with some sort of response parser method
 		//5- log output
-		DatagramSocket clientSocket = new DatagramSocket();
+		
 		
 	}
 	
