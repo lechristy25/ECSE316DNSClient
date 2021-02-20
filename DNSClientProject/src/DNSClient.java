@@ -1,4 +1,5 @@
 import java.net.*;
+import java.io.*;
 
 public class DNSClient {
 	static int timeout = 5;
@@ -7,6 +8,48 @@ public class DNSClient {
 	static String queryFlag = "A";
 	static byte[] serverIP = new byte[4];
 	static String name = "";
+	
+	
+	public static void main(String args[]) throws Exception {
+
+		// 1- parse input args to get values for all above instance vars
+		String[] test = { "-t", "-r", "22", "-p", "33", "-mx", "@132.206.85.18", "www.mcgill.ca" };
+
+		parseInput(test);
+		// 2- pass relevant vals to some sort of request builder method
+		RequestPacket currPacket = new RequestPacket(name, queryFlag);
+		byte[] requestPacket = currPacket.genRequestPacket();
+		byte[] responsePacket = new byte[1024];
+		// 3- make socket and send the request
+		int numRetries = 0;
+		long startTime;
+		long endTime; 
+		
+		System.out.println("DnsClient sending request for " + name); 
+		System.out.println("Server: " + serverIP.toString()); 
+		System.out.println("Request type: " + queryFlag);
+		while(numRetries < retries) {
+//			try {
+				DatagramSocket clientSocket = new DatagramSocket();
+				clientSocket.setSoTimeout(5);
+				InetAddress ipAddress = InetAddress.getByAddress(serverIP); 
+				
+				DatagramPacket request = new DatagramPacket(requestPacket, requestPacket.length, ipAddress, 53 );
+				DatagramPacket response = new DatagramPacket(responsePacket, responsePacket.length);
+				
+				startTime = System.currentTimeMillis();
+				clientSocket.send(request);
+				clientSocket.receive(response);
+				endTime = System.currentTimeMillis();
+				clientSocket.close();
+				numRetries++; 
+//			} catch
+		}
+		
+		// 4- receive and parse response with some sort of response parser method
+		// 5- log output
+
+	}
 
 	private static void parseInput(String[] input) {
 		boolean serverFlag = false;
@@ -136,20 +179,6 @@ public class DNSClient {
 		// }
 	}
 
-	public static void main(String args[]) throws Exception {
 
-		// 1- parse input args to get values for all above instance vars
-		String[] test = { "-t", "-r", "22", "-p", "33", "-mx", "@132.206.85.18", "www.mcgill.ca" };
-
-		parseInput(test);
-		// 2- pass relevant vals to some sort of request builder method
-		RequestPacket currPacket = new RequestPacket(name, queryFlag);
-		byte[] request = currPacket.genRequestPacket();
-		// 3- make socket and send the request
-		DatagramSocket clientSocket = new DatagramSocket();
-		// 4- receive and parse response with some sort of response parser method
-		// 5- log output
-
-	}
 
 }
