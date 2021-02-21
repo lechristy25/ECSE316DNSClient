@@ -8,6 +8,7 @@ public class RequestPacket {
 	byte[] requestPacket; 
 	
 	public RequestPacket(String name, String queryFlag) {
+		System.out.println("name: " + name);
 		this.name = name.split("\\."); 
 		this.queryFlag = queryFlag; 
 	}
@@ -51,6 +52,7 @@ public class RequestPacket {
 	private byte[] genQuestion() {
 		ByteArrayOutputStream byteStreamQuestion = new ByteArrayOutputStream(); 
 		for(String label : name) {
+			
 			int labelLength = label.length();
 			byteStreamQuestion.write((byte) labelLength);
 			byteStreamQuestion.writeBytes(genASCIIReps(label));

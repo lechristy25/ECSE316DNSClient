@@ -1,4 +1,5 @@
 import java.net.*;
+import java.util.Arrays;
 import java.io.*;
 
 public class DNSClient {
@@ -13,7 +14,7 @@ public class DNSClient {
 	public static void main(String args[]) throws Exception {
 
 		// 1- parse input args to get values for all above instance vars
-		String[] test = { "-t", "-r", "22", "-p", "33", "-mx", "@132.206.85.18", "www.mcgill.ca" };
+		String[] test = { "-r", "22", "-p", "33", "@132.206.85.18", "www.mcgill.ca" };
 
 		parseInput(test);
 		// 2- pass relevant vals to some sort of request builder method
@@ -21,34 +22,36 @@ public class DNSClient {
 		byte[] requestPacket = currPacket.genRequestPacket();
 		byte[] responsePacket = new byte[1024];
 		// 3- make socket and send the request
-		int numRetries = 0;
-		long startTime;
-		long endTime; 
-		
-		System.out.println("DnsClient sending request for " + name); 
-		System.out.println("Server: " + serverIP.toString()); 
-		System.out.println("Request type: " + queryFlag);
-		while(numRetries < retries) {
-//			try {
-				DatagramSocket clientSocket = new DatagramSocket();
-				clientSocket.setSoTimeout(5);
-				InetAddress ipAddress = InetAddress.getByAddress(serverIP); 
-				
-				DatagramPacket request = new DatagramPacket(requestPacket, requestPacket.length, ipAddress, 53 );
-				DatagramPacket response = new DatagramPacket(responsePacket, responsePacket.length);
-				
-				startTime = System.currentTimeMillis();
-				clientSocket.send(request);
-				clientSocket.receive(response);
-				endTime = System.currentTimeMillis();
-				clientSocket.close();
-				numRetries++; 
-//			} catch
-		}
+//		int numRetries = 0;
+//		long startTime;
+//		long endTime; 
+//		
+//		System.out.println("DnsClient sending request for " + name); 
+//		System.out.println("Server: " + serverIP.toString()); 
+//		System.out.println("Request type: " + queryFlag);
+//		while(numRetries < retries) {
+////			try {
+//				DatagramSocket clientSocket = new DatagramSocket();
+//				clientSocket.setSoTimeout(5);
+//				InetAddress ipAddress = InetAddress.getByAddress(serverIP); 
+//				
+//				DatagramPacket request = new DatagramPacket(requestPacket, requestPacket.length, ipAddress, 53 );
+//				DatagramPacket response = new DatagramPacket(responsePacket, responsePacket.length);
+//				
+//				startTime = System.currentTimeMillis();
+//				clientSocket.send(request);
+//				clientSocket.receive(response);
+//				endTime = System.currentTimeMillis();
+//				clientSocket.close();
+//				numRetries++; 
+////			} catch
+//		}
 		
 		// 4- receive and parse response with some sort of response parser method
 		// 5- log output
 
+		
+		System.out.println(Arrays.toString(requestPacket));
 	}
 
 	private static void parseInput(String[] input) {
@@ -113,10 +116,14 @@ public class DNSClient {
 						System.out.println("@ detected: " + input[i]);
 
 						// Check a.b.c.d format of the address.
+						int k = 0;
 						int commas = 0;
 						for (int j = 0; j < input[i].length(); j++) {
 							if (input[i].charAt(j) == '.')
 								commas += 1;
+							else {
+								serverIP[k] = (byte) Character.getNumericValue(input[i].charAt(j));
+							}
 						}
 
 						if (commas != 3)
@@ -126,6 +133,7 @@ public class DNSClient {
 					} else {
 						System.out.println("Name detected: " + input[i]);
 						nameFlag = true;
+						name = input[i];
 					}
 					break;
 			}
