@@ -1,15 +1,11 @@
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore.Entry;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 public class ResponsePacket {
-    // ByteBuffer NAME = ByteBuffer.allocate(10);
-    // ByteBuffer TYPE = ByteBuffer.allocate(2);
-    // ByteBuffer CLASS = ByteBuffer.allocate(2);
-    // ByteBuffer TTL = ByteBuffer.allocate(4);
-    // ByteBuffer RDLENGTH = ByteBuffer.allocate(2);
-    // ByteBuffer RDATA = ByteBuffer.allocate(2);
 
     private boolean QR, AA, TC, RD, RA;
     private int RCODE, QDCOUNT, ANCOUNT, NSCOUNT, ARCOUNT;
@@ -48,41 +44,21 @@ public class ResponsePacket {
                 }
                 if (RTYPE == 15) {
                     System.out.println("MX\t" + IPAddress + "\t" + TTL + "\t" + auth(AA));
-                    // getDName(29);
                 }
-                // if (ANCOUNT > 1) {
-                // for (byte b : response) {
-                // System.out.println(b);
-                // }
-                // }
-                // for (int i = 0; i < ANCOUNT; i++) {
-                // getResponse();
-                // }
             }
         } else {
             System.out.println("ERROR: This is not a response.");
         }
 
-        // System.out.println(response);
 
         // Check if response is a response by checking QR bit
-        // if (isAResponse(response[2])) {
-        // Header.
-        // System.out.println("Response: " + isAResponse(response[2]));
-        // System.out.println("Authority: " + authority(response[2]));
-        System.out.println("Truncated: " + truncated(response[2]));
-        // System.out.println("Recursion Request: " + recursionRequest(response[2]));
-        // System.out.println("Recursion Response: " + recursionResponse(response[3]));
-        // errorCode(response[3]);
 
-        // System.out.println("QDCOUNT: " + (response[4] + response[5]));
-        // System.out.println("ANCOUNT: " + (response[6] + response[7]));
-        // System.out.println("NSCOUNT: " + (response[8] + response[9]));
+        System.out.println("Truncated: " + truncated(response[2]));
+ 
         System.out.println("ARCOUNT: " + (response[10] + response[11]));
 
         // Check if RA bit is different
-        // } else {
-        // }
+
 
         // Parse the response.
     }
@@ -117,14 +93,11 @@ public class ResponsePacket {
         int i = off;
         while (response[i] != 0) {
             s += ((char) (response[i] & 0xFF));
-            // System.out.println(response[i] & 0xFF);
-            // byteList.add(response[i]);
+
             i += 1;
         }
         System.out.println(s);
         return s;
-        // String t = new String(byteList.toArray());
-        // return new String(byteList.toArray());
     }
 
     private int errorCode(byte data) {
@@ -174,18 +147,6 @@ public class ResponsePacket {
         ANCOUNT = ((response[6] * 256) + response[7]);
         NSCOUNT = ((response[8] * 256) + response[9]);
         ARCOUNT = ((response[10] * 256) + response[11]);
-
-        // System.out.println("Response: " + isAResponse(response[2]));
-        // System.out.println("Authority: " + authority(response[2]));
-        // System.out.println("Truncated: " + truncated(response[2]));
-        // System.out.println("Recursion Request: " + recursionRequest(response[2]));
-        // System.out.println("Recursion Response: " + recursionResponse(response[3]));
-        // // errorCode(response[3]);
-
-        // System.out.println("QDCOUNT: " + (response[4] + response[5]));
-        // System.out.println("ANCOUNT: " + (response[6] + response[7]));
-        // System.out.println("NSCOUNT: " + (response[8] + response[9]));
-        // System.out.println("ARCOUNT: " + (response[10] + response[11]));
     }
 
     void getResponse() {
@@ -219,69 +180,14 @@ public class ResponsePacket {
             case 15:
                 MXOffset = index + 17;
                 getMXResponse();
-                // System.out.println(MXOffset);
-                // System.out.println(response[MXOffset + 0]);
-                // System.out.println(response[MXOffset + 1]);
-                // System.out.println(response[MXOffset + 2]);
-                // System.out.println(response[MXOffset + 3]);
-                // System.out.println(response[MXOffset + 4]);
-                // System.out.println(response[MXOffset + 5]);
-                // System.out.println(response[MXOffset + 6]);
-                // System.out.println(response[MXOffset + 7]);
-                // System.out.println(response[MXOffset + 8]);
-                // System.out.println(response[MXOffset + 9]);
-                // System.out.println(response[MXOffset + 10]);
-                // System.out.println(response[MXOffset + 11]);
-                // System.out.println(response[MXOffset + 12]);
-                // System.out.println(response[MXOffset + 13]);
-                // System.out.println(response[MXOffset + 14]);
-                // System.out.println(response[MXOffset + 15]);
-                // System.out.println(response[MXOffset + 16]);
-                // System.out.println(response[MXOffset + 17]);
-                // System.out.println(response[MXOffset + 18]);
-                // System.out.println(response[MXOffset + 19]);
-                // System.out.println(response[MXOffset + 20]);
-                // System.out.println(response[MXOffset + 21]);
-                // System.out.println(response[MXOffset + 22]);
-                // System.out.println(response[MXOffset + 23]);
-                // System.out.println(response[MXOffset + 24]);
-                // System.out.println(response[MXOffset + 25]);
-                // System.out.println(response[MXOffset + 26]);
-                // System.out.println(response[MXOffset + 27]);
-                // System.out.println(response[MXOffset + 28]);
-                // System.out.println(response[MXOffset + 29]);
                 break;
 
             default:
                 break;
         }
 
-        // System.out.println(response[index + 20]);
-        // System.out.println(index + 20);
-        // System.out.println("QTYPE: " + (response[index] + response[index + 1]));
-        // System.out.println("QCLASS: " + (response[index + 2] + response[index + 3]));
-        // System.out.println("OFFSET: " + response[index + 5]);
-        // System.out.println("RTYPE: " + (response[index + 6] + response[index + 7]));
-        // System.out.println("RCLASS: " + (response[index + 8] + response[index + 9]));
-        // System.out.println(
-        // "TTL: " + (response[index + 10] + response[index + 11] + response[index + 12]
-        // + response[index + 13]));
-        // System.out.println("RDLENGTH: " + (response[index + 14] + response[index +
-        // 15]));
-        // System.out.println("IP: " + (response[index + 16] + 256) + "." +
-        // (response[index + 17] + 256) + "."
-        // + (response[index + 18] + 256) + "." + (response[index + 19] + 256));
 
-        // int a = getHex(response[index + 12], 0);
-        // int b = getHex(response[index + 13], 1);
-        // int c = getHex(response[index + 13], 0);
-
-        // System.out.println(a + "." + b + "." + c);
     }
-
-    // public void printP() {
-    // System.out.println("FUCL");
-    // }
 
     private int TTLInteger(byte[] data) {
         int ttl = 0;
@@ -330,8 +236,8 @@ public class ResponsePacket {
                         byteList.add(response[j]);
                     }
                     System.out.println("__________");
-                    printBytes(byteList);
-                    System.out.println(urlMaker(byteList));
+                    // printBytes(byteList);
+                    System.out.println(urlMaker(byteList, temp));
                     temp = i + 11;
                     break;
                 }
@@ -348,38 +254,9 @@ public class ResponsePacket {
             }
             byteList.add(response[i]);
         }
-        // for (int i = temp; i < response.length - 7; i++) {
+        System.out.println(urlMaker(byteList, temp));
         System.out.println("__________");
-        printBytes(byteList);
-        // if ((pattern[0] == response[i]) && (pattern[1] == response[i + 1]) &&
-        // (pattern[2] == response[i + 2])
-        // && (pattern[3] == response[i + 3]) && (pattern[4] == response[i + 4])
-        // && (pattern[5] == response[i + 5]) && (pattern[6] == response[i + 6])) {
-        // for (int j = temp; j < i; j++) {
-        // byteList.add(response[j]);
-        // }
-        // System.out.println("__________");
-        // printBytes(byteList);
-        // break;
-        // }
-        // }
 
-        // while (count < ANCOUNT) {
-        // urlByteExtract(temp);
-        // break;
-        // // temp += 11;
-        // // count += 1;
-        // }
-
-        // for (int i = MXOffset + 1; i < response.length; i++) {
-        // String c = "" + ((char) (response[i] & 0xFF));
-        // if (c.matches("\\A\\p{ASCII}*\\z")) {
-        // url += c;
-        // }
-        // }
-        // System.out.println(url);
-        // System.out.println("MX" + "\t" + url + "\t" + response[MXOffset] + "\t" + TTL
-        // + "\t" + auth(AA));
     }
 
     private void printBytes(ArrayList<Byte> byteList) {
@@ -388,74 +265,75 @@ public class ResponsePacket {
         }
     }
 
-    private String urlMaker(ArrayList<Byte> byteList) {
+    HashMap<Integer, String> urlMAP = new HashMap<Integer, String>();
+
+    private String urlMaker(ArrayList<Byte> byteList, int startIndex) {
         String url = "";
-        // url = new String(byteList.toArray(), "abcdefghijklmnopqrstuvwxyz");
-        // String s = byteList.toString();
-        // url = s;
+        ArrayList<String> urlARRAY = new ArrayList<String>();
+
         String otherBase = "";
+        boolean firstSixFour = false;
+
+        int indexComplete = 0;
 
         for (int i = 0; i < byteList.size(); i++) {
             Byte b = byteList.get(i);
-            // System.out.println("h" + b);
 
-            // String c = "" + ((char) (b & 0xFF));
             if ((b >= 97) && (b <= 122)) {
                 String c = Character.toString(((char) (b & 0xFF)));
-                // if (c.matches("\\A\\p{ASCII}*\\z")) {
-                // url += c;
-                // } else {
-                // url += ".";
-                // }
                 url += c;
-
+            } else if ((b >= 48) && (b <= 57)) {
+                String c = Character.toString(((char) (b & 0xFF)));
+                url += c;
             } else {
-                if (i < byteList.size() - 1) {
-                    if (byteList.get(i) > 0) {
-                        url += ".";
-                    }
-                }
-            }
-            // if (b == -64)
-            // break;
-            if (i > 0) {
-                if (byteList.get(i - 1) == -64) {
-                    // System.out.println(baseURL);
-                    if (byteList.get(i) == 12) {
-                        url += baseURL;
-                    } else {
+                // if (b != -64) {
+                urlMAP.put(startIndex, url);
+                urlARRAY.add(url);
+                url = "";
+                startIndex += i;
 
-                    }
-                }
+                if (byteList.get(i) == -64)
+                    break;
+
             }
-            // }
-            // if (b == -64) {
-            // b = byteList.get(i+1);
-            // if (b == 12) {
-            // url +=
-            // }
-            // }
         }
+
+        // Getting pointers
+        boolean addedBaseURL = false;
+        for (int i = 0; i < byteList.size(); i++) {
+            if (byteList.get(i) == -64) {
+                if (byteList.get(i + 1) == 12) {
+                    if (!addedBaseURL) {
+                        urlARRAY.add(baseURL);
+                        addedBaseURL = true;
+                    }
+                } else {
+                    // if(byteList.get(i + 1) == 44)
+                    urlARRAY.add(urlMAP.get((int) byteList.get(i + 1)));
+                }
+                // urlARRAY.add(urlMAP.get(44));
+                // System.out.println(byteList.get(i + 1));
+            }
+        }
+
+
+
+        System.out.println("AAAAAAAAAAAAAAAAAA");
+        String finalURL = "";
+
+        for (int i = 0; i < urlARRAY.size(); i++) {
+            if (i == urlARRAY.size() - 1) {
+                finalURL += urlARRAY.get(i);
+            } else {
+                finalURL += urlARRAY.get(i) + ".";
+            }
+
+        }
+        for (String string : urlARRAY) {
+        }
+        System.out.println(finalURL);
         return url;
 
-    }
-
-    private void urlByteExtract(int offset) {
-        // int[] pattern = { 0, 15, 0, 1, 0, 0, 0 };
-        // ArrayList<Byte> byteList = new ArrayList<Byte>();
-        // for (int i = offset; i < response.length - 7; i++) {
-        // if ((pattern[0] == response[i]) && (pattern[1] == response[i + 1]) &&
-        // (pattern[2] == response[i + 2])
-        // && (pattern[3] == response[i + 3]) && (pattern[4] == response[i + 4])
-        // && (pattern[5] == response[i + 5]) && (pattern[6] == response[i + 6])) {
-        // for (int j = MXOffset; j < i; j++) {
-        // byteList.add(response[j]);
-        // }
-        // System.out.println("__________");
-        // printBytes(byteList);
-        // break;
-        // }
-        // }
     }
 
 }
