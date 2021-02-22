@@ -1,4 +1,5 @@
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -18,12 +19,13 @@ public class ResponsePacket {
 
     private String Name = "";
     private String IPAddress = "";
+    private String baseURL = "";
 
     byte[] response;
     String queryFlag;
 
     // Get packet and add
-    public ResponsePacket(byte[] response, int size, String queryFlag) {
+    public ResponsePacket(byte[] response, int size, String queryFlag, String baseURL) {
         // int counter = 0;
         // for (byte b : response) {
         // System.out.println(b);
@@ -33,6 +35,7 @@ public class ResponsePacket {
         // }
         this.response = response;
         this.queryFlag = queryFlag;
+        this.baseURL = baseURL;
 
         getHeader();
         // Check header
@@ -328,6 +331,7 @@ public class ResponsePacket {
                     }
                     System.out.println("__________");
                     printBytes(byteList);
+                    System.out.println(urlMaker(byteList));
                     temp = i + 11;
                     break;
                 }
@@ -382,6 +386,58 @@ public class ResponsePacket {
         for (Byte b : byteList) {
             System.out.println(b);
         }
+    }
+
+    private String urlMaker(ArrayList<Byte> byteList) {
+        String url = "";
+        // url = new String(byteList.toArray(), "abcdefghijklmnopqrstuvwxyz");
+        // String s = byteList.toString();
+        // url = s;
+        String otherBase = "";
+
+        for (int i = 0; i < byteList.size(); i++) {
+            Byte b = byteList.get(i);
+            // System.out.println("h" + b);
+
+            // String c = "" + ((char) (b & 0xFF));
+            if ((b >= 97) && (b <= 122)) {
+                String c = Character.toString(((char) (b & 0xFF)));
+                // if (c.matches("\\A\\p{ASCII}*\\z")) {
+                // url += c;
+                // } else {
+                // url += ".";
+                // }
+                url += c;
+
+            } else {
+                if (i < byteList.size() - 1) {
+                    if (byteList.get(i) > 0) {
+                        url += ".";
+                    }
+                }
+            }
+            // if (b == -64)
+            // break;
+            if (i > 0) {
+                if (byteList.get(i - 1) == -64) {
+                    // System.out.println(baseURL);
+                    if (byteList.get(i) == 12) {
+                        url += baseURL;
+                    } else {
+
+                    }
+                }
+            }
+            // }
+            // if (b == -64) {
+            // b = byteList.get(i+1);
+            // if (b == 12) {
+            // url +=
+            // }
+            // }
+        }
+        return url;
+
     }
 
     private void urlByteExtract(int offset) {
