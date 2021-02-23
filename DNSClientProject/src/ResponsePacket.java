@@ -1,13 +1,14 @@
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyStore.Entry;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 public class ResponsePacket {
+    private byte[] response;
+    private String queryFlag;
 
-    private boolean QR, AA, TC, RD, RA;
+    private boolean QR, AA, TC, RD, RA, firstURL, lastURL;
     private int RCODE, QDCOUNT, ANCOUNT, NSCOUNT, ARCOUNT;
     private int OFFSET, RTYPE, RCLASS, TTL, RDLENGTH;
 
@@ -17,18 +18,10 @@ public class ResponsePacket {
     private String IPAddress = "";
     private String baseURL = "";
 
-    byte[] response;
-    String queryFlag;
+    HashMap<Integer, String> urlMAP = new HashMap<Integer, String>();
 
     // Get packet and add
     public ResponsePacket(byte[] response, int size, String queryFlag, String baseURL) {
-        // int counter = 0;
-        // for (byte b : response) {
-        // System.out.println(b);
-        // if (counter == 250)
-        // return;
-        // counter++;
-        // }
         this.response = response;
         this.queryFlag = queryFlag;
         this.baseURL = baseURL;
@@ -37,30 +30,14 @@ public class ResponsePacket {
         // Check header
         if (QR) {
             if (RCODE == 0) {
-                getResponse();
                 System.out.println("***Answer Section (" + ANCOUNT + " records)***");
-                if (RTYPE == 1) {
-                    System.out.println("IP\t" + IPAddress + "\t" + TTL + "\t" + auth(AA));
-                }
-                if (RTYPE == 15) {
-                    System.out.println("MX\t" + IPAddress + "\t" + TTL + "\t" + auth(AA));
-                }
+                getResponse();
+            } else {
+
             }
         } else {
-            System.out.println("ERROR: This is not a response.");
+            System.out.println("ERROR\tThis is not a response.");
         }
-
-
-        // Check if response is a response by checking QR bit
-
-        System.out.println("Truncated: " + truncated(response[2]));
- 
-        System.out.println("ARCOUNT: " + (response[10] + response[11]));
-
-        // Check if RA bit is different
-
-
-        // Parse the response.
     }
 
     private boolean isAResponse(byte data) {
@@ -93,7 +70,6 @@ public class ResponsePacket {
         int i = off;
         while (response[i] != 0) {
             s += ((char) (response[i] & 0xFF));
-
             i += 1;
         }
         System.out.println(s);
@@ -130,7 +106,7 @@ public class ResponsePacket {
                 break;
 
             default:
-                System.out.println("RCODE 0: No error");
+                // System.out.println("RCODE 0: No error");
                 break;
         }
         return errorCode;
@@ -167,25 +143,23 @@ public class ResponsePacket {
 
         switch (RTYPE) {
             case 1:
-
+                System.out.println("IP\t" + IPAddress + "\t" + TTL + "\t" + auth(AA));
                 break;
             case 2:
                 MXOffset = index + 17;
-                getMXResponse();
-
+                getFlaggedResponse();
                 break;
             case 5:
 
                 break;
             case 15:
                 MXOffset = index + 17;
-                getMXResponse();
+                getFlaggedResponse();
                 break;
 
             default:
                 break;
         }
-
 
     }
 
@@ -219,7 +193,7 @@ public class ResponsePacket {
         return 0;
     }
 
-    private void getMXResponse() {
+    private void getFlaggedResponse() {
         int alias = 0;
         String url = "";
         int temp = MXOffset;
@@ -228,6 +202,13 @@ public class ResponsePacket {
         int[] pattern = { 0, RTYPE, 0, 1 };
         ArrayList<Byte> byteList = new ArrayList<Byte>();
 
+        if (RTYPE == 15)
+            temp += 1;
+
+        firstURL = true;
+        if (ANCOUNT == 1) {
+            lastURL = false;
+        }
         while (count < ANCOUNT) {
             for (int i = temp; i < response.length - 4; i++) {
                 if ((pattern[0] == response[i]) && (pattern[1] == response[i + 1]) && (pattern[2] == response[i + 2])
@@ -235,15 +216,17 @@ public class ResponsePacket {
                     for (int j = temp; j < i; j++) {
                         byteList.add(response[j]);
                     }
-                    System.out.println("__________");
-                    // printBytes(byteList);
-                    System.out.println(urlMaker(byteList, temp));
+
+                    urlMaker(byteList, temp);
                     temp = i + 11;
+                    if (RTYPE == 15)
+                        temp += 1;
                     break;
                 }
             }
             byteList.clear();
             count++;
+            firstURL = false;
         }
 
         int[] bpattern = { 0, 0, 0, 0 };
@@ -254,8 +237,11 @@ public class ResponsePacket {
             }
             byteList.add(response[i]);
         }
-        System.out.println(urlMaker(byteList, temp));
-        System.out.println("__________");
+
+        if (ANCOUNT != 1)
+            lastURL = true;
+
+        urlMaker(byteList, temp);
 
     }
 
@@ -265,9 +251,7 @@ public class ResponsePacket {
         }
     }
 
-    HashMap<Integer, String> urlMAP = new HashMap<Integer, String>();
-
-    private String urlMaker(ArrayList<Byte> byteList, int startIndex) {
+    private void urlMaker(ArrayList<Byte> byteList, int startIndex) {
         String url = "";
         ArrayList<String> urlARRAY = new ArrayList<String>();
 
@@ -275,28 +259,46 @@ public class ResponsePacket {
         boolean firstSixFour = false;
 
         int indexComplete = 0;
+        // int startIndex = MXOffset;
 
         for (int i = 0; i < byteList.size(); i++) {
             Byte b = byteList.get(i);
+            // System.out.println("h" + b);
 
-            if ((b >= 97) && (b <= 122)) {
-                String c = Character.toString(((char) (b & 0xFF)));
-                url += c;
-            } else if ((b >= 48) && (b <= 57)) {
+            // String c = "" + ((char) (b & 0xFF));
+            if ((b >= 33) && (b <= 126)) {
                 String c = Character.toString(((char) (b & 0xFF)));
                 url += c;
             } else {
-                // if (b != -64) {
+                if (i == 0)
+                    continue;
                 urlMAP.put(startIndex, url);
                 urlARRAY.add(url);
                 url = "";
                 startIndex += i;
-
+                
                 if (byteList.get(i) == -64)
-                    break;
+                break;
+                
+            }
+            if (i == byteList.size() - 1) {
+                urlMAP.put(startIndex, url);
+                urlARRAY.add(url);
+                url = "";
 
             }
         }
+        if (firstURL) {
+            for (int i = 1; i < urlARRAY.size(); i++) {
+                // System.out.println("hello");
+                if (i == urlARRAY.size()) {
+                    baseURL += urlARRAY.get(i);
+                } else {
+                    baseURL += urlARRAY.get(i) + ".";
+                }
+            }
+        }
+        firstURL = false;
 
         // Getting pointers
         boolean addedBaseURL = false;
@@ -308,17 +310,11 @@ public class ResponsePacket {
                         addedBaseURL = true;
                     }
                 } else {
-                    // if(byteList.get(i + 1) == 44)
                     urlARRAY.add(urlMAP.get((int) byteList.get(i + 1)));
                 }
-                // urlARRAY.add(urlMAP.get(44));
-                // System.out.println(byteList.get(i + 1));
             }
         }
 
-
-
-        System.out.println("AAAAAAAAAAAAAAAAAA");
         String finalURL = "";
 
         for (int i = 0; i < urlARRAY.size(); i++) {
@@ -327,13 +323,34 @@ public class ResponsePacket {
             } else {
                 finalURL += urlARRAY.get(i) + ".";
             }
-
         }
-        for (String string : urlARRAY) {
-        }
-        System.out.println(finalURL);
-        return url;
 
+        if (RTYPE == 15) {
+            if (lastURL) {
+                finalURL += "." + baseURL;
+            }
+        }
+        switch (RTYPE) {
+            case 2:
+                System.out.println("NS\t" + finalURL + "\t" + TTL + "\t" + auth(AA));
+                break;
+            case 15:
+                System.out.println("MX\t" + finalURL + "\t" + TTL + "\t" + auth(AA));
+                break;
+            default:
+                break;
+        }
+
+    }
+
+    private void completeURL(ArrayList<Byte> byteList, int i, ArrayList<String> urlARRAY) {
+        for (int j = i + 1; j < byteList.size(); j++) {
+            int xxx = byteList.get(j);
+            System.out.println(xxx);
+        }
+    }
+
+    private void urlByteExtract(int offset) {
     }
 
 }
